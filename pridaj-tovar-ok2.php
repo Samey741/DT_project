@@ -1,5 +1,5 @@
 <?php
-include("config.php"); // Lokálne nastavenia
+include("config1.php"); // Lokálne nastavenia
 include("config2.php"); // Nastavenia vzdialeného uzla
 
 // Prijatie vstupných dát z POST požiadavky

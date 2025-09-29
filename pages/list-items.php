@@ -1,0 +1,50 @@
+﻿<?php
+include("resources/config/config1.php");
+
+
+// Connect to the database
+$conn = mysqli_connect($node1_db['host'], $node1_db['user'], $node1_db['pass'], $node1_db['name']);
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+// Fetch all items
+$sql = "SELECT id, pc, nazov, vyrobca, popis, kusov, cena, kod FROM ntovar";
+$result = mysqli_query($conn, $sql);
+?>
+
+<h2>Zoznam Tovarov</h2>
+
+<table class="item-table">
+    <thead>
+    <tr>
+        <th>Kód</th>
+        <th>Názov</th>
+        <th>Výrobca</th>
+        <th>Popis</th>
+        <th>Kusov</th>
+        <th>Cena</th>
+        <th>Akcie</th>
+    </tr>
+    </thead>
+    <tbody>
+    <?php while($row = mysqli_fetch_assoc($result)): ?>
+        <tr>
+            <td><?php echo htmlspecialchars($row['kod']); ?></td>
+            <td><?php echo htmlspecialchars($row['nazov']); ?></td>
+            <td><?php echo htmlspecialchars($row['vyrobca']); ?></td>
+            <td><?php echo htmlspecialchars($row['popis']); ?></td>
+            <td><?php echo htmlspecialchars($row['kusov']); ?></td>
+            <td><?php echo htmlspecialchars($row['cena']); ?> €</td>
+            <td>
+                <a href="index.php?menu=12&e=<?php echo $row['id']; ?>" class="edit-btn">Edituj</a>
+                <a href="zmazanietov.php?k=<?php echo $row['id']; ?>" class="delete-btn" onclick="return confirm('Naozaj chcete zmazať tento tovar?');">X</a>
+            </td>
+        </tr>
+    <?php endwhile; ?>
+    </tbody>
+</table>
+
+<?php
+mysqli_close($conn);
+?>

@@ -1,6 +1,6 @@
 <?php
 // Synchro.php
-include("config.php"); // Importuje nastavenia pre vzdialené pripojenie
+include("config1.php"); // Importuje nastavenia pre vzdialené pripojenie
 
 // Vytvorenie pripojenia k vzdialenej databáze
 @$remote_conn = new mysqli($remote_servername, $remote_username, $remote_password, $remote_dbname);

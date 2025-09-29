@@ -1,5 +1,5 @@
 <?php
-include("config.php");
+include("config1.php");
 
 $pc = $_POST["pc"];
 $nazov = $_POST["nazov"];

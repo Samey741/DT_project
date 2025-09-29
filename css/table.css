@@ -1,0 +1,33 @@
+/* Tables with zebra stripes and styled headers */
+.item-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.item-table th, .item-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+.item-table th {
+    background-color: #220075;
+    color: #ffff00;
+    text-align: left;
+}
+
+.item-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.item-table tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.item-table td a.edit-btn,
+.item-table td a.delete-btn {
+    font-size: 0.85em;
+    padding: 4px 8px;
+}

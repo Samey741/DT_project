@@ -1,5 +1,5 @@
 <?php
-include("config.php"); // Lokálne nastavenia
+include("config1.php"); // Lokálne nastavenia
 include("config2.php"); // 2. uzol
 
 $pc = $_POST["pc"];
