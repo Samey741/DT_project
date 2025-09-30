@@ -28,26 +28,18 @@ SET time_zone = "+00:00";
 --
 
 DROP TABLE IF EXISTS `ntovar`;
-CREATE TABLE IF NOT EXISTS `ntovar` (
-  `id` varchar(30) COLLATE utf8mb3_slovak_ci NOT NULL,
-  `pc` int DEFAULT NULL,
-  `nazov` varchar(20) COLLATE utf8mb3_slovak_ci DEFAULT NULL,
-  `vyrobca` varchar(20) COLLATE utf8mb3_slovak_ci DEFAULT NULL,
-  `popis` varchar(100) COLLATE utf8mb3_slovak_ci DEFAULT NULL,
-  `kusov` int DEFAULT NULL,
-  `cena` int DEFAULT NULL,
-  `kod` varchar(20) COLLATE utf8mb3_slovak_ci DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_slovak_ci;
 
---
--- Sťahujem dáta pre tabuľku `ntovar`
---
-
-INSERT INTO `ntovar` (`id`, `pc`, `nazov`, `vyrobca`, `popis`, `kusov`, `cena`, `kod`) VALUES
-('20231105160340', 1, 'Názov produktu', 'Výrobca', '0', 10, 100, '0'),
-('20231105161104', 2, 'Fabia', 'Skoda', '1', 2, 1500, '0');
-COMMIT;
+CREATE TABLE `ntovar` (
+                          `id` varchar(30) NOT NULL,
+                          `pc` int(11) DEFAULT NULL,
+                          `nazov` varchar(20) DEFAULT NULL,
+                          `vyrobca` varchar(20) DEFAULT NULL,
+                          `popis` varchar(100) DEFAULT NULL,
+                          `kusov` int(11) DEFAULT NULL,
+                          `cena` int(11) DEFAULT NULL,
+                          `kod` varchar(20) DEFAULT NULL,
+                          `node_origin` int(11) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_slovak_ci;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
