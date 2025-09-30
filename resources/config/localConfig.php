@@ -1,6 +1,6 @@
 <?php
 //customize on each device
-$localSignature = "node1";
+$localSignature = "1";
 
 $configFiles = [
     __DIR__ . '/config1.php',

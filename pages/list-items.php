@@ -1,9 +1,9 @@
 ﻿<?php
-include("resources/config/config1.php");
+include __DIR__ . '/../resources/config/localConfig.php';
 
 
 // Connect to the database
-$conn = mysqli_connect($node1_db['host'], $node1_db['user'], $node1_db['pass'], $node1_db['name']);
+$conn = mysqli_connect($localConfig['host'], $localConfig['user'], $localConfig['pass'], $localConfig['name']);
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }

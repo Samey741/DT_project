@@ -1,4 +1,6 @@
 <?php
+
+//TODO use __DIR__ and not this path
 include("../resources/config/localConfig.php"); // $localConfig is set
 include("../resources/config/config1.php");
 include("../resources/config/config2.php");
@@ -6,9 +8,9 @@ include("../resources/config/config3.php");
 
 // --- Nodes array ---
 $nodes = [
-    ['name'=>'node1', 'db'=>$db_config1 ?? []],
-    ['name'=>'node2', 'db'=>$db_config2 ?? []],
-    ['name'=>'node3', 'db'=>$db_config3 ?? []]
+    ['name'=>'1', 'db'=>$db_config1 ?? []],
+    ['name'=>'2', 'db'=>$db_config2 ?? []],
+    ['name'=>'3', 'db'=>$db_config3 ?? []]
 ];
 
 // --- Collect POST data ---
@@ -20,6 +22,7 @@ $kusov   = intval($_POST['kusov'] ?? 0);
 $cena    = floatval($_POST['cena'] ?? 0);
 $kod     = $_POST['kod'] ?? '';
 $id      = date('YmdHis');
+$node_origin = $localSignature;
 
 // --- Connect to local DB ---
 $conn = new mysqli($localConfig['host'], $localConfig['user'], $localConfig['pass'], $localConfig['name']);
@@ -31,13 +34,15 @@ $queueStmt = $conn->prepare(
 );
 
 foreach ($nodes as $node) {
-    $nodeDataJson = json_encode(compact('id','pc','nazov','vyrobca','popis','kusov','cena','kod'));
+    $nodeDataJson = json_encode(compact('id','pc','nazov','vyrobca','popis','kusov','cena','kod', 'node_origin'));
     $queueStmt->bind_param("ss", $node['name'], $nodeDataJson);
     $queueStmt->execute();
 }
 
 $queueStmt->close();
 $conn->close();
+
+//TODO call the process-queue here? or let the background process handle it?
 
 // --- Feedback to user ---
 echo "<p>Tovar pridaný do replikácie.</p>";

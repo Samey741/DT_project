@@ -1,7 +1,8 @@
 <?php
-$node_id = "node3";
+$node_id = "3";
 $db_config  = [
-    'host' => "TODO",
+    // TODO SET PROPER HOST
+    'host' => "25.8.89.156",
     'user' => "dt_user",
     'pass' => "superadmin",
     'name' => "dt_database"
