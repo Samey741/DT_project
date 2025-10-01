@@ -28,14 +28,18 @@ $node_origin = $localSignature;
 $conn = new mysqli($localConfig['host'], $localConfig['user'], $localConfig['pass'], $localConfig['name']);
 if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
-// --- Insert replication queue entries for all nodes ---
+$repl_id = $id; // rovnaké id ako v datach
+
+
 $queueStmt = $conn->prepare(
-    "INSERT INTO replication_queue (node_id, data) VALUES (?, ?)"
+    "INSERT INTO replication_queue (id, repl_id, node_id, data) VALUES (?, ?, ?, ?)"
 );
 
+
 foreach ($nodes as $node) {
+    $id_combined = $id . "_" .  $node['name'];
     $nodeDataJson = json_encode(compact('id','pc','nazov','vyrobca','popis','kusov','cena','kod', 'node_origin'));
-    $queueStmt->bind_param("ss", $node['name'], $nodeDataJson);
+    $queueStmt->bind_param("ssss", $id_combined, $repl_id, $node['name'], $nodeDataJson);
     $queueStmt->execute();
 }
 

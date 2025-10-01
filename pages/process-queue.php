@@ -1,8 +1,6 @@
 <?php
 header('Content-Type: application/json');
 
-//TODO connection pooling? We open/close connection all the time on repeat...
-
 // --- Json structure for debugging on client (browser console)
 $errors = [];
 set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$errors) {
@@ -34,7 +32,7 @@ foreach ($configFiles as $file) {
 }
 
 // --- Connect local DB ---
-$conn = @new mysqli(    //@ <-- this suppresses warnings so it doesnt flood the console if connection failed
+$conn = @new mysqli(
     $localConfig['host'],
     $localConfig['user'],
     $localConfig['pass'],
@@ -54,27 +52,26 @@ if ($conn->connect_error) {
 }
 
 // --- Fetch the entire queue ---
-//TODO do we limit the query? Or do we load the entire table into memory? Pagination?
 $result = $conn->query("
-    SELECT * 
-    FROM replication_queue 
-    ORDER BY created_at ASC 
+    SELECT *
+    FROM replication_queue
+    ORDER BY created_at ASC
 ");
 
 $processed = [];
 $failed = [];
 
-//TODO unify failed logic, there are 5 failed branches which do the same
-
 while ($row = $result->fetch_assoc()) {
-    $id = (int)$row['id'];
+    $id = $row['id']; // Kombinované id (repl_id + node_id)
     $nodeId = $row['node_id'];
     $data = json_decode($row['data'], true);
 
     // Check node config
-    // TODO remove once all configs are valid, its useless
     if (!isset($allNodes[$nodeId])) {
-        $conn->query("UPDATE replication_queue SET status='failed' WHERE id=$id");
+        $stmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
+        $stmt->bind_param("s", $id);
+        $stmt->execute();
+        $stmt->close();
         $failed[] = $id;
         continue;
     }
@@ -84,23 +81,27 @@ while ($row = $result->fetch_assoc()) {
     // Connect to remote node safely
     try {
         $remoteConn = new mysqli();
-        //TODO im waiting 2 seconds, if i dont connect i throw an error. Not ideal, connection pooling should fix this case
         $remoteConn->options(MYSQLI_OPT_CONNECT_TIMEOUT, 2);
-        @$remoteConn->real_connect( //@ <-- this suppresses warnings so it doesnt flood the console if connection failed
+        @$remoteConn->real_connect(
             $node['host'],
             $node['user'],
             $node['pass'],
             $node['name']
         );
     } catch (mysqli_sql_exception $e) {
-        $conn->query("UPDATE replication_queue SET status='failed' WHERE id=$id");
+        $stmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
+        $stmt->bind_param("s", $id);
+        $stmt->execute();
+        $stmt->close();
         $failed[] = $id;
         continue;
     }
 
-    //TODO idk if this does something tbh
     if ($remoteConn->connect_error) {
-        $conn->query("UPDATE replication_queue SET status='failed' WHERE id=$id");
+        $stmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
+        $stmt->bind_param("s", $id);
+        $stmt->execute();
+        $stmt->close();
         $failed[] = $id;
         continue;
     }
@@ -112,30 +113,51 @@ while ($row = $result->fetch_assoc()) {
     ");
 
     if ($stmt) {
+        // Inicializácia premenných z $data
+        $id_val = $id; // Použijeme kombinované id z replication_queue
+        $pc_val = $data['pc'] ?? null;
+        $nazov_val = $data['nazov'] ?? null;
+        $vyrobca_val = $data['vyrobca'] ?? null;
+        $popis_val = $data['popis'] ?? null;
+        $kusov_val = $data['kusov'] ?? null;
+        $cena_val = $data['cena'] ?? null;
+        $kod_val = $data['kod'] ?? null;
+        $origin_val = $data['node_origin'] ?? null;
+
+        // Bind parametrov
         $stmt->bind_param(
-            "sssssiiss",
-            $data['id'],
-            $data['pc'],
-            $data['nazov'],
-            $data['vyrobca'],
-            $data['popis'],
-            $data['kusov'],
-            $data['cena'],
-            $data['kod'],
-            $localSignature
+            "sissssiis",
+            $id_val,
+            $pc_val,
+            $nazov_val,
+            $vyrobca_val,
+            $popis_val,
+            $kusov_val,
+            $cena_val,
+            $kod_val,
+            $origin_val
         );
 
         if ($stmt->execute()) {
-            $conn->query("DELETE FROM replication_queue WHERE id=$id");
+            $stmt = $conn->prepare("DELETE FROM replication_queue WHERE id=?");
+            $stmt->bind_param("s", $id);
+            $stmt->execute();
+            $stmt->close();
             $processed[] = $id;
         } else {
-            $conn->query("UPDATE replication_queue SET status='failed' WHERE id=$id");
+            $stmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
+            $stmt->bind_param("s", $id);
+            $stmt->execute();
+            $stmt->close();
             $failed[] = $id;
         }
 
         $stmt->close();
     } else {
-        $conn->query("UPDATE replication_queue SET status='failed' WHERE id=$id");
+        $stmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
+        $stmt->bind_param("s", $id);
+        $stmt->execute();
+        $stmt->close();
         $failed[] = $id;
     }
 
