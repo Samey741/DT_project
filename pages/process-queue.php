@@ -66,12 +66,24 @@ while ($row = $result->fetch_assoc()) {
     $nodeId = $row['node_id'];
     $data = json_decode($row['data'], true);
 
+    if (!isset($data)) {
+        // Invalid JSON data
+        $localStmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
+        $localStmt->bind_param("s", $id);
+        $localStmt->execute();
+        $localStmt->close();
+        $failed[] = $id;
+        continue;
+    }
+
+    $type = $data['type'] ?? 'insert';
+
     // Check node config
     if (!isset($allNodes[$nodeId])) {
-        $stmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
-        $stmt->bind_param("s", $id);
-        $stmt->execute();
-        $stmt->close();
+        $localStmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
+        $localStmt->bind_param("s", $id);
+        $localStmt->execute();
+        $localStmt->close();
         $failed[] = $id;
         continue;
     }
@@ -79,6 +91,7 @@ while ($row = $result->fetch_assoc()) {
     $node = $allNodes[$nodeId];
 
     // Connect to remote node safely
+    $remoteConn = null;
     try {
         $remoteConn = new mysqli();
         $remoteConn->options(MYSQLI_OPT_CONNECT_TIMEOUT, 2);
@@ -89,75 +102,97 @@ while ($row = $result->fetch_assoc()) {
             $node['name']
         );
     } catch (mysqli_sql_exception $e) {
-        $stmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
-        $stmt->bind_param("s", $id);
-        $stmt->execute();
-        $stmt->close();
+        // Connection exception
+        $localStmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
+        $localStmt->bind_param("s", $id);
+        $localStmt->execute();
+        $localStmt->close();
         $failed[] = $id;
         continue;
     }
 
     if ($remoteConn->connect_error) {
-        $stmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
-        $stmt->bind_param("s", $id);
-        $stmt->execute();
-        $stmt->close();
+        $localStmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
+        $localStmt->bind_param("s", $id);
+        $localStmt->execute();
+        $localStmt->close();
         $failed[] = $id;
+        if ($remoteConn) $remoteConn->close();
         continue;
     }
 
-    // Insert into remote table
-    $stmt = $remoteConn->prepare("
-        INSERT INTO ntovar (id, pc, nazov, vyrobca, popis, kusov, cena, kod, node_origin)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ");
+    // Prepare and execute based on type (on REMOTE connection)
+    $success = false;
+    if ($type === 'update') {
+        // UPDATE na remote
+        $remoteStmt = $remoteConn->prepare("
+            UPDATE ntovar SET pc = ?, nazov = ?, vyrobca = ?, popis = ?, kusov = ?, cena = ?, kod = ? WHERE id = ?
+        ");
+        if ($remoteStmt) {
+            $pc_val = $data['pc'] ?? null;
+            $nazov_val = $data['nazov'] ?? null;
+            $vyrobca_val = $data['vyrobca'] ?? null;
+            $popis_val = $data['popis'] ?? null;
+            $kusov_val = $data['kusov'] ?? null;
+            $cena_val = $data['cena'] ?? null;
+            $kod_val = $data['kod'] ?? null;
+            $update_id_val = $data['id'] ?? null; // Originálne ID pre WHERE
 
-    if ($stmt) {
-        // Inicializácia premenných z $data
-        $id_val = $id; // Použijeme kombinované id z replication_queue
-        $pc_val = $data['pc'] ?? null;
-        $nazov_val = $data['nazov'] ?? null;
-        $vyrobca_val = $data['vyrobca'] ?? null;
-        $popis_val = $data['popis'] ?? null;
-        $kusov_val = $data['kusov'] ?? null;
-        $cena_val = $data['cena'] ?? null;
-        $kod_val = $data['kod'] ?? null;
-        $origin_val = $data['node_origin'] ?? null;
+            $remoteStmt->bind_param("ssssiiis", $pc_val, $nazov_val, $vyrobca_val, $popis_val, $kusov_val, $cena_val, $kod_val, $update_id_val);
 
-        // Bind parametrov
-        $stmt->bind_param(
-            "sissssiis",
-            $id_val,
-            $pc_val,
-            $nazov_val,
-            $vyrobca_val,
-            $popis_val,
-            $kusov_val,
-            $cena_val,
-            $kod_val,
-            $origin_val
-        );
-
-        if ($stmt->execute()) {
-            $stmt = $conn->prepare("DELETE FROM replication_queue WHERE id=?");
-            $stmt->bind_param("s", $id);
-            $stmt->execute();
-            $stmt->close();
-            $processed[] = $id;
-        } else {
-            $stmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
-            $stmt->bind_param("s", $id);
-            $stmt->execute();
-            $stmt->close();
-            $failed[] = $id;
+            $success = $remoteStmt->execute();
+            $remoteStmt->close();
         }
-
-        $stmt->close();
     } else {
-        $stmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
-        $stmt->bind_param("s", $id);
-        $stmt->execute();
-        $stmt->close();
+        // Default: INSERT na remote
+        $remoteStmt = $remoteConn->prepare("
+            INSERT INTO ntovar (id, pc, nazov, vyrobca, popis, kusov, cena, kod, node_origin)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+
+        if ($remoteStmt) {
+            // Inicializácia premenných z $data (použi originálne id z data, nie queue id)
+            $insert_id_val = $data['id'] ?? $id; // Prefer data['id'] pre konzistentnosť
+            $pc_val = $data['pc'] ?? null;
+            $nazov_val = $data['nazov'] ?? null;
+            $vyrobca_val = $data['vyrobca'] ?? null;
+            $popis_val = $data['popis'] ?? null;
+            $kusov_val = $data['kusov'] ?? null;
+            $cena_val = $data['cena'] ?? null;
+            $kod_val = $data['kod'] ?? null;
+            $origin_val = $data['node_origin'] ?? null;
+
+            // Opravený bind_param: s(id), i(pc), s(nazov), s(vyrobca), s(popis), i(kusov), i(cena), s(kod), i(node_origin)
+            $remoteStmt->bind_param(
+                "sisssiisi",
+                $insert_id_val,
+                $pc_val,
+                $nazov_val,
+                $vyrobca_val,
+                $popis_val,
+                $kusov_val,
+                $cena_val,
+                $kod_val,
+                $origin_val
+            );
+
+            $success = $remoteStmt->execute();
+            $remoteStmt->close();
+        }
+    }
+
+    // Handle success/failure on local queue
+    if ($success) {
+        $localStmt = $conn->prepare("DELETE FROM replication_queue WHERE id=?");
+        $localStmt->bind_param("s", $id);
+        $localStmt->execute();
+        $localStmt->close();
+        $processed[] = $id;
+    } else {
+        $localStmt = $conn->prepare("UPDATE replication_queue SET status='failed' WHERE id=?");
+        $localStmt->bind_param("s", $id);
+        $localStmt->execute();
+        $localStmt->close();
         $failed[] = $id;
     }
 
@@ -172,3 +207,4 @@ echo json_encode([
     'failed' => $failed,
     'errors' => $errors
 ]);
+?>

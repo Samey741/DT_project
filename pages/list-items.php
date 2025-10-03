@@ -37,8 +37,8 @@ $result = mysqli_query($conn, $sql);
             <td><?php echo htmlspecialchars($row['kusov']); ?></td>
             <td><?php echo htmlspecialchars($row['cena']); ?> €</td>
             <td>
-                <a href="index.php?menu=12&e=<?php echo $row['id']; ?>" class="edit-btn">Edituj</a>
-                <a href="zmazanietov.php?k=<?php echo $row['id']; ?>" class="delete-btn" onclick="return confirm('Naozaj chcete zmazať tento tovar?');">X</a>
+                <a href="index.php?menu=edit-item&e=<?php echo $row['id']; ?>" class="edit-btn">Edituj</a>
+                <a href="index.php?menu=delete-item&k=<?php echo $row['id']; ?>" class="delete-btn" onclick="return confirm('Naozaj chcete zmazať tento tovar?');">X</a>
             </td>
         </tr>
     <?php endwhile; ?>
