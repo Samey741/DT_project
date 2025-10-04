@@ -18,7 +18,7 @@
     <main class="content">
         <?php
         // Determine which page to show
-        $allowed_pages = ['home','add-item','list-items','search', 'edit-item'];
+        $allowed_pages = ['home','add-item','list-items','search', 'edit-item', 'delete-item'];
         $menu = isset($_GET['menu']) ? $_GET['menu'] : 'home';
         $page = in_array($menu, $allowed_pages) ? $menu : 'home';
         include "pages/{$page}.php";

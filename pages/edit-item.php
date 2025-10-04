@@ -1,14 +1,12 @@
 <?php
 include __DIR__ . '/../resources/config/localConfig.php';
 
-// Získaj ID z GET
-$id = $_GET['e'] ?? ''; // z linky v list-items.php
+$id = $_GET['e'] ?? '';
 
 if (!$id) {
     die("Chýba ID záznamu.");
 }
 
-// Pripoj sa k lokálnej DB
 $conn = new mysqli($localConfig['host'], $localConfig['user'], $localConfig['pass'], $localConfig['name']);
 if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
@@ -23,7 +21,7 @@ if (!$row) {
     die("Záznam neexistuje.");
 }
 
-if ($row['node_origin'] != $localSignature) { // $localSignature z localConfig.php (tvoj lokálny node ID)
+if ($row['node_origin'] != $localSignature) {
     die("Môžete upravovať len záznamy vytvorené na tomto uzle (node_origin = {$localSignature}).");
 }
 

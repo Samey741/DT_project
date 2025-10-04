@@ -143,7 +143,18 @@ while ($row = $result->fetch_assoc()) {
             $success = $remoteStmt->execute();
             $remoteStmt->close();
         }
-    } else {
+    }
+    elseif ($type === 'delete') {
+        // DELETE na remote
+        $remoteStmt = $remoteConn->prepare("DELETE FROM ntovar WHERE id = ?");
+        if ($remoteStmt) {
+            $delete_id_val = $data['id'] ?? null;
+            $remoteStmt->bind_param("s", $delete_id_val);
+            $success = $remoteStmt->execute();
+            $remoteStmt->close();
+        }
+    }
+    else {
         // Default: INSERT na remote
         $remoteStmt = $remoteConn->prepare("
             INSERT INTO ntovar (id, pc, nazov, vyrobca, popis, kusov, cena, kod, node_origin)
