@@ -1,3 +1,4 @@
 /config.php
 /config2.php
 .idea
+resources/config/localConfig.php
