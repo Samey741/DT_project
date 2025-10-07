@@ -9,7 +9,7 @@ if (!$conn) {
 }
 
 // Fetch all items
-$sql = "SELECT id, pc, nazov, vyrobca, popis, kusov, cena, kod FROM ntovar";
+$sql = "SELECT id, pc, nazov, vyrobca, popis, kusov, cena, kod, node_origin FROM ntovar";
 $result = mysqli_query($conn, $sql);
 ?>
 
@@ -21,9 +21,11 @@ $result = mysqli_query($conn, $sql);
         <th>Kód</th>
         <th>Názov</th>
         <th>Výrobca</th>
+        <th>Mesto</th>
         <th>Popis</th>
         <th>Kusov</th>
         <th>Cena</th>
+        <th>Vlastník</th>
         <th>Akcie</th>
     </tr>
     </thead>
@@ -33,9 +35,11 @@ $result = mysqli_query($conn, $sql);
             <td><?php echo htmlspecialchars($row['kod']); ?></td>
             <td><?php echo htmlspecialchars($row['nazov']); ?></td>
             <td><?php echo htmlspecialchars($row['vyrobca']); ?></td>
+            <td><?php echo htmlspecialchars($row['pc']); ?></td>
             <td><?php echo htmlspecialchars($row['popis']); ?></td>
             <td><?php echo htmlspecialchars($row['kusov']); ?></td>
             <td><?php echo htmlspecialchars($row['cena']); ?> €</td>
+            <td><?php echo htmlspecialchars($row['node_origin']); ?></td>
             <td>
                 <a href="index.php?menu=edit-item&e=<?php echo $row['id']; ?>" class="edit-btn">Edituj</a>
                 <a href="index.php?menu=delete-item&k=<?php echo $row['id']; ?>" class="delete-btn" onclick="return confirm('Naozaj chcete zmazať tento tovar?');">X</a>

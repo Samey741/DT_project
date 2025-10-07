@@ -1,10 +1,9 @@
 <?php
 
-//TODO use __DIR__ and not this path
-include("../resources/config/localConfig.php"); // $localConfig is set
-include("../resources/config/config1.php");
-include("../resources/config/config2.php");
-include("../resources/config/config3.php");
+include __DIR__ . "/../resources/config/localConfig.php"; // sets $localConfig, $localSignature
+include __DIR__ . "/../resources/config/config1.php";
+include __DIR__ . "/../resources/config/config2.php";
+include __DIR__ . "/../resources/config/config3.php";
 
 // --- Nodes array ---
 $nodes = [
@@ -25,13 +24,13 @@ $id      = date('YmdHis');
 $node_origin = $localSignature;
 
 // --- Connect to local DB ---
-$conn = new mysqli($localConfig['host'], $localConfig['user'], $localConfig['pass'], $localConfig['name']);
-if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+$local_conn = new mysqli($localConfig['host'], $localConfig['user'], $localConfig['pass'], $localConfig['name']);
+if ($local_conn->connect_error) die("Connection failed: " . $local_conn->connect_error);
 
 $repl_id = $id; // rovnaké id ako v datach
 
 
-$queueStmt = $conn->prepare(
+$queueStmt = $local_conn->prepare(
     "INSERT INTO replication_queue (id, repl_id, node_id, data) VALUES (?, ?, ?, ?)"
 );
 
@@ -44,9 +43,7 @@ foreach ($nodes as $node) {
 }
 
 $queueStmt->close();
-$conn->close();
-
-//TODO call the process-queue here? or let the background process handle it?
+$local_conn->close();
 
 // --- Feedback to user ---
 echo "<p>Tovar pridaný do replikácie.</p>";

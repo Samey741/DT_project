@@ -7,11 +7,11 @@ if (!$id) {
     die("Chýba ID záznamu.");
 }
 
-$conn = new mysqli($localConfig['host'], $localConfig['user'], $localConfig['pass'], $localConfig['name']);
-if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+$local_conn = new mysqli($localConfig['host'], $localConfig['user'], $localConfig['pass'], $localConfig['name']);
+if ($local_conn->connect_error) die("Connection failed: " . $local_conn->connect_error);
 
 // Načítaj dáta a skontroluj node_origin
-$stmt = $conn->prepare("SELECT * FROM ntovar WHERE id = ?");
+$stmt = $local_conn->prepare("SELECT * FROM ntovar WHERE id = ?");
 $stmt->bind_param("s", $id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -26,7 +26,7 @@ if ($row['node_origin'] != $localSignature) {
 }
 
 $stmt->close();
-$conn->close();
+$local_conn->close();
 ?>
 
 <h2>Editácia tovaru (ID: <?php echo htmlspecialchars($id); ?>)</h2>

@@ -27,12 +27,15 @@ SET time_zone = "+00:00";
 -- Table structure for table `replication_queue`
 --
 
-CREATE TABLE `replication_queue` (
-                                     `id` int(11) NOT NULL,
-                                     `node_id` varchar(50) NOT NULL,
-                                     `data` text NOT NULL,
-                                     `status` enum('pending','done','failed') NOT NULL DEFAULT 'pending',
-                                     `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+CREATE TABLE replication_queue (
+                                   id VARCHAR(120) NOT NULL,              -- kombinácia repl_id + node_id
+                                   repl_id VARCHAR(50) NOT NULL,          -- id z dát
+                                   node_id VARCHAR(50) NOT NULL,          -- node
+                                   data JSON NOT NULL,
+                                   status ENUM('pending','done','failed') NOT NULL DEFAULT 'pending',
+                                   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                   PRIMARY KEY (id),
+                                   KEY idx_repl_node (repl_id, node_id)   -- ak chceš rýchle vyhľadávanie
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Indexes for dumped tables

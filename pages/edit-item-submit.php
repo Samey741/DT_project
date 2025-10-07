@@ -25,11 +25,11 @@ $node_origin = $localSignature; // Zachovať pôvodný, ale pre istotu
 if (!$id) die("Chýba ID záznamu.");
 
 // Connect to local DB
-$conn = new mysqli($localConfig['host'], $localConfig['user'], $localConfig['pass'], $localConfig['name']);
-if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+$local_conn = new mysqli($localConfig['host'], $localConfig['user'], $localConfig['pass'], $localConfig['name']);
+if ($local_conn->connect_error) die("Connection failed: " . $local_conn->connect_error);
 
 // Kontrola node_origin lokálne
-$stmt = $conn->prepare("SELECT node_origin FROM ntovar WHERE id = ?");
+$stmt = $local_conn->prepare("SELECT node_origin FROM ntovar WHERE id = ?");
 $stmt->bind_param("s", $id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -40,7 +40,7 @@ if ($row['node_origin'] != $localSignature) {
 $stmt->close();
 
 // Lokálny UPDATE
-$updateStmt = $conn->prepare("
+$updateStmt = $local_conn->prepare("
     UPDATE ntovar SET pc = ?, nazov = ?, vyrobca = ?, popis = ?, kusov = ?, cena = ?, kod = ? WHERE id = ?
 ");
 $updateStmt->bind_param("ssssiiis", $pc, $nazov, $vyrobca, $popis, $kusov, $cena, $kod, $id);
@@ -51,7 +51,7 @@ $updateStmt->close();
 $repl_id = date('YmdHis') . '_' . $localSignature; // Unikátne pre replikáciu
 
 // Vlož do queue pre každý uzol s 'type' => 'update' v data
-$queueStmt = $conn->prepare("
+$queueStmt = $local_conn->prepare("
     INSERT INTO replication_queue (id, repl_id, node_id, data) VALUES (?, ?, ?, ?)
 ");
 
@@ -74,7 +74,7 @@ foreach ($nodes as $node) {
 }
 
 $queueStmt->close();
-$conn->close();
+$local_conn->close();
 
 // Feedback
 echo "<p>Zmeny uložené lokálne a pridané do replikácie.</p>";
