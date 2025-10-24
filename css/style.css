@@ -300,3 +300,69 @@ a.delete-btn:hover {
 .alert { padding: 12px; border-radius: 6px; margin: 15px 0; }
 .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
 .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+/* Queue Button */
+.queue-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 26px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    margin-top: 15px;
+}
+
+.queue-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #5a6fe0 0%, #6d45a0 100%);
+}
+
+.queue-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
+}
+
+.queue-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.queue-btn[disabled] {
+    opacity: 0.75;
+    cursor: not-allowed;
+    transform: none !important; /* prevent stuck active transform */
+}
+
+/* Status pill */
+.queue-status {
+    display: inline-block;
+    margin-left: 12px;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    border-radius: 999px;
+    vertical-align: middle;
+    transition: all 0.18s ease;
+    min-width: 120px;
+    text-align: center;
+    color: #444;
+    background: rgba(0,0,0,0.04);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* states */
+.status-working { background: rgba(102,126,234,0.12); color: #2e2e7a; }
+.status-success { background: #e6f4ea; color: #1b5e20; border: 1px solid #cfe9d5; }
+.status-error   { background: #fdecea; color: #7a1414; border: 1px solid #f5c6cb; }
+.status-info    { background: #eef6ff; color: #254b7a; border: 1px solid #dbeeff; }
+
+/* Small responsive tweak so status doesn't overflow on tiny screens */
+@media (max-width: 420px) {
+    .queue-status { display: block; margin-left: 0; margin-top: 8px; min-width: auto; }
+}
