@@ -31,7 +31,7 @@ DROP TABLE IF EXISTS `ntovar`;
 
 CREATE TABLE `ntovar` (
                           `id` varchar(30) NOT NULL,
-                          `pc` int(11) DEFAULT NULL,
+                          `pc` varchar(30) DEFAULT NULL,
                           `nazov` varchar(20) DEFAULT NULL,
                           `vyrobca` varchar(20) DEFAULT NULL,
                           `popis` varchar(100) DEFAULT NULL,

@@ -173,9 +173,9 @@ while ($row = $result->fetch_assoc()) {
             $kod_val = $data['kod'] ?? null;
             $origin_val = $data['node_origin'] ?? null;
 
-            // Opravený bind_param: s(id), i(pc), s(nazov), s(vyrobca), s(popis), i(kusov), i(cena), s(kod), i(node_origin)
+            // Opravený bind_param: s(id), s(pc), s(nazov), s(vyrobca), s(popis), i(kusov), i(cena), s(kod), i(node_origin)
             $remoteStmt->bind_param(
-                "sisssiisi",
+                "sssssiisi",
                 $insert_id_val,
                 $pc_val,
                 $nazov_val,

@@ -3,7 +3,6 @@ $menuItems = [
         'home' => 'Domov',
         'add-item' => 'Pridaj Tovar',
         'list-items' => 'Zoznam Tovarov',
-        'search' => 'Vyhľadávanie'
 ];
 
 $current = isset($_GET['menu']) ? $_GET['menu'] : 'home';

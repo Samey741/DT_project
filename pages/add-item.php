@@ -1,4 +1,3 @@
-<!--TODO create a proper form-->
 <h2>Pridanie tovaru</h2>
 <form action="pages/add-item-submit.php" method="POST">
     <label>Mesto: <input name="pc" type="text" /></label><br/><br/>
